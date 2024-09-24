@@ -1,0 +1,310 @@
+openapi: 3.0.2
+info:
+  version: 1.0.0
+  title: Catalog View API
+  contact:
+    name: Digitaliseringsdirektoratet
+    url: 'https://fellesdatakatalog.digdir.no'
+    email: fellesdatakatalog@digdir.no
+  license:
+    name: License of API
+    url: 'http://data.norge.no/nlod/no/2.0'
+servers:
+  - url: 'https://catalog-view.api.fellesdatakatalog.digdir.no'
+    description: Production
+  - url: 'https://catalog-view.api.demo.fellesdatakatalog.digdir.no'
+    description: Demo
+  - url: 'https://catalog-view.api.staging.fellesdatakatalog.digdir.no'
+    description: Test
+paths:
+  /catalogs/{catalogId}/concepts:
+    get:
+      description: Returns all concepts in the collection
+      operationId: getConcepts
+      parameters:
+        - name: catalogId
+          in: path
+          description: Catalog id, usually id of publishing organization
+          required: true
+          schema:
+            type: string
+        - name: changedAfter
+          in: query
+          description: Response will only include concepts that has been changed after this date, format "yyyy-MM-dd'T'HH:mm:ss.SSSXXX". Note that it needs to be url-encoded, ie `+` -> `%2b`
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: domainCodes
+          in: query
+          description: Response will only include concepts that has at least one of the domain codes
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Concept'
+  /catalogs/{catalogId}/concepts/{id}:
+    get:
+      description: Returns single concept
+      operationId: getConceptById
+      parameters:
+        - name: catalogId
+          in: path
+          description: Catalog id, usually id of publishing organization
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          description: Concept id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Concept"
+
+components:
+  schemas:
+
+    Concept:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Concept id (GUID)
+        idOfOriginalVersion:
+          type: string
+          description: The id of the original version of the concept, equals id when original
+        version:
+          $ref: "#/components/schemas/SemVer"
+        isPublished:
+          type: boolean
+          description: The concept is published to felles datakatalog
+        publisher:
+          type: string
+          description: Organization id of publisher
+        status:
+          type: string
+          description: Status of concept, full uri if part of EU published concept statuses
+        preferredTerm:
+          $ref: "#/components/schemas/LocalizedStrings"
+        admittedTerm:
+          $ref: "#/components/schemas/ListOfLocalizedStrings"
+        deprecatedTerm:
+          $ref: "#/components/schemas/ListOfLocalizedStrings"
+        definition:
+          $ref: "#/components/schemas/Definition"
+        publicDefinition:
+          $ref: "#/components/schemas/Definition"
+        specialistDefinition:
+          $ref: "#/components/schemas/Definition"
+        note:
+          $ref: "#/components/schemas/LocalizedStrings"
+        attachedTag:
+          type: array
+          items:
+            type: string
+        valueRange:
+          $ref: "#/components/schemas/URIText"
+        contactPoint:
+          $ref: "#/components/schemas/ContactPoint"
+        abbreviatedLabel:
+          type: string
+        seeAlso:
+          type: array
+          items:
+            type: string
+        conceptRelations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConceptRelation"
+        replacedBy:
+          type: array
+          items:
+            type: string
+        example:
+          $ref: "#/components/schemas/LocalizedStrings"
+        domain:
+          $ref: "#/components/schemas/ListOfLocalizedStrings"
+        domainCodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/Code"
+        startDate:
+          type: string
+          format: date
+          description: date (inclusive) from which the concept is valid
+        endDate:
+          type: string
+          format: date
+          description: date (inclusively) through which the concept is valid
+        created:
+          type: string
+          format: date-time
+          description: Date and time this version was created, pattern yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+        createdBy:
+          type: string
+          description: Name of user who created the concept
+        lastChanged:
+          type: string
+          format: date-time
+          description: Date and time this version was last changed, pattern yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+        lastChangedBy:
+          type: string
+          description: Name of user who last changed the concept
+        assignedUser:
+          $ref: "#/components/schemas/User"
+        internalFields:
+          type: array
+          items:
+            $ref: "#/components/schemas/InternalField"
+
+    Definition:
+      type: object
+      properties:
+        text:
+          $ref: "#/components/schemas/LocalizedStrings"
+        sourceDescription:
+          $ref: "#/components/schemas/SourceDescription"
+
+    SemVer:
+      type: object
+      required:
+        - major
+        - minor
+        - patch
+      properties:
+        major:
+          type: integer
+          minimum: 0
+        minor:
+          type: integer
+          minimum: 0
+        patch:
+          type: integer
+          minimum: 0
+
+    LocalizedStrings:
+      type: object
+      properties:
+        nb:
+          type: string
+          description: Norsk bokmål
+        nn:
+          type: string
+          description: Nynorsk
+        en:
+          type: string
+          description: English
+
+    ListOfLocalizedStrings:
+      type: object
+      properties:
+        nb:
+          type: array
+          description: Norsk bokmål
+          items:
+            type: string
+        nn:
+          type: array
+          description: Nynorsk
+          items:
+            type: string
+        en:
+          type: array
+          description: English
+          items:
+            type: string
+
+    SourceDescription:
+      type: object
+      properties:
+        relationshipWithSource:
+          type: string
+          description: Relationship between the definition and the source, as complete uri from a controlled vocabulary
+        source:
+          $ref: "#/components/schemas/URIText"
+
+    URIText:
+      type: object
+      properties:
+        uri:
+          type: string
+        text:
+          type: string
+
+    ContactPoint:
+      type: object
+      properties:
+        email:
+          type: string
+        telephone:
+          type: string
+
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+
+    Code:
+      type: object
+      properties:
+        codeId:
+          type: string
+        codeListId:
+          type: string
+        codeLabel:
+          $ref: "#/components/schemas/LocalizedStrings"
+
+    InternalField:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          $ref: "#/components/schemas/LocalizedStrings"
+        type:
+          type: string
+          enum: [text_short, text_long, bool, user, code]
+        value:
+          oneOf:
+            - $ref: "#/components/schemas/ShortTextField"
+            - $ref: "#/components/schemas/LongTextField"
+            - $ref: "#/components/schemas/BooleanValue"
+            - $ref: "#/components/schemas/User"
+            - $ref: "#/components/schemas/Code"
+
+    ShortTextField:
+      type: string
+
+    LongTextField:
+      type: string
+
+    BooleanValue:
+      type: boolean
+
+    ConceptRelation:
+      type: object
+      properties:
+        relationType:
+          type: string
+          enum: [ASSOCIATIVE, HAS_PARTITIVE, HAS_COMPREHENSIVE, HAS_SPECIFIC, HAS_GENERIC]
+        description:
+          $ref: "#/components/schemas/LocalizedStrings"
+        relatedConcept:
+          type: string

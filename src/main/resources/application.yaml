@@ -1,0 +1,51 @@
+logging:
+  level.root: WARN
+  level.no.fdk: ${LOG_LEVEL:INFO}
+  level.org.springframework: WARN
+  level.org.springframework.web: WARN
+server:
+  port: 8080
+application:
+  scope: ${MASKINPORTEN_SCOPE}
+  databases:
+    adminService: catalogAdminService
+    conceptCatalog: concept-catalogue
+  collections:
+    concepts: begrep
+    codeLists: codeLists
+    editableFields: editableFields
+    internalFields: internalFields
+    users: users
+  elastic:
+    username: ${ELASTIC_USERNAME}
+    password: ${ELASTIC_PASSWORD}
+    host: ${ELASTIC_HOST}
+    ssl: ${ELASTIC_SSL:true}
+    storePath: ${ELASTIC_KEYSTORE_PATH}
+    storePass: ${ELASTIC_KEYSTORE_PASSWORD}
+
+spring:
+  security.oauth2.resourceserver.jwt:
+    jwk-set-uri: ${MASKINPORTEN_JWK:https://test.maskinporten.no/jwk}
+    issuer-uri: ${MASKINPORTEN_ISSUER:https://test.maskinporten.no/}
+---
+spring:
+  config.activate.on-profile: test
+  security.oauth2:
+    client:
+      registration:
+        altinn:
+          client-id:  5c5e9335-731c-4061-b8af-848b4f17777a
+          client-authentication-method: private_key_jwt
+          authorization-grant-type: authorization_code
+application:
+  scope: test.scope
+  elastic:
+    username: elastic
+    password: elasticpwd
+    ssl: false
+    storeName: keystore
+    storePass: keystore
+    certPath: path
+
+
