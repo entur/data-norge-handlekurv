@@ -8,12 +8,18 @@ data class DatasetMetadata(
     val publisher: Publisher,
     val admsIdentifier: String?,
     val accessRights: AccessRights?,
+    val description: Description?,
 ) {
     data class ContactPoint(
         val email: String,
     )
 
     data class Title(
+        val nb: String?,
+        val en: String?,
+    )
+
+    data class Description(
         val nb: String?,
         val en: String?,
     )
@@ -27,7 +33,10 @@ data class DatasetMetadata(
         val code: AccessRight,
     )
 
-    fun toHandlekurv(uuid: UUID): Handlekurv =
+    fun toHandlekurv(
+        type: String,
+        uuid: UUID,
+    ): Handlekurv =
         Handlekurv(
             orgnr = publisher.id,
             dataDef =
@@ -36,6 +45,7 @@ data class DatasetMetadata(
                     katalogId = uuid.toString(),
                     orgnr = publisher.id,
                     navn = title.nb ?: title.en ?: "",
+                    resourceType = toResourceType(type),
                 ),
             hintIsPublic = accessRights?.code == AccessRight.PUBLIC,
         )
