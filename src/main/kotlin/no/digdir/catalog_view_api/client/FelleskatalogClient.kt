@@ -1,6 +1,6 @@
 package no.digdir.catalog_view_api.client
 
-import no.digdir.catalog_view_api.controller.DatasetMetadata
+import no.digdir.catalog_view_api.Model.DatasetMetadata
 import org.springframework.stereotype.Component
 import org.springframework.web.reactive.function.client.WebClient
 import java.util.UUID
