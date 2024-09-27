@@ -1,33 +1,28 @@
 package no.digdir.catalog_view_api.controller
 
+import no.digdir.catalog_view_api.client.FelleskatalogClient
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.reactive.function.client.WebClient
 import java.util.UUID
 
 @RestController
 @RequestMapping(value = ["/access-application"], produces = ["application/json"])
-class AccessApplication {
-    val webClient =
-        WebClient.create("https://resource.api.fellesdatakatalog.digdir.no")
-
+class AccessApplication(
+    val felleskatalogClient: FelleskatalogClient,
+) {
     @GetMapping("/{type}/{id}")
     fun test(
-        @PathVariable id: UUID,
         @PathVariable type: String,
+        @PathVariable id: UUID,
     ): ResponseEntity<Handlekurv> {
-        val test =
-            webClient
-                .get()
-                .uri("/$type/$id")
-                .retrieve()
-                .bodyToMono(Metadata::class.java)
-                .block()
+        val metadata =
+            felleskatalogClient.getMetadata(type, id)
+                ?: return ResponseEntity.notFound().build()
 
-        return ResponseEntity.ok(test.toHandlekurv(id))
+        return ResponseEntity.ok(metadata.toHandlekurv(id))
     }
 }
 
@@ -37,7 +32,7 @@ enum class AccessRight {
     NON_PUBLIC,
 }
 
-data class Metadata(
+data class DatasetMetadata(
     val contactPoint: List<ContactPoint>,
     val title: Title,
     val publisher: Publisher,
